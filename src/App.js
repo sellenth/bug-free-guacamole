@@ -1,5 +1,5 @@
 import React from 'react';
-import { Heading, Container } from "@chakra-ui/react"
+import { Heading } from "@chakra-ui/react"
 
 function oscillate(currText, stateFunc) {
   let count = 0;

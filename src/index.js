@@ -1,12 +1,13 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
+import theme from './theme'
 import App from './App';
 
 import { ChakraProvider, Center } from "@chakra-ui/react"
 
 ReactDOM.render(
   <React.StrictMode>
-    <ChakraProvider>
+    <ChakraProvider theme={theme}>
       <Center h="100%">
         <App />
       </Center>

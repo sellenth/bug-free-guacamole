@@ -1,16 +1,20 @@
 import React from 'react';
-import { Center } from "@chakra-ui/react"
 import LoadingCircle from "./LoadingCircle"
-import TitleText from "./TitleText"
+import OpenGLcanvas from './OpenGLcanvas';
+import { Heading } from '@chakra-ui/react'
 
 const Introduction = () => {
     const script = [
-        "Hello,", 
+        "Hello,",
         "my name is Halston.",
         "I tinker with computers."
     ]
     return (
-        <LoadingCircle script={script}/>
+        <div>
+            {/*<LoadingCircle script={script} />*/}
+            <Heading size="4xl">Halston Sellentin</Heading>
+            <OpenGLcanvas />
+        </div>
     )
 }
 

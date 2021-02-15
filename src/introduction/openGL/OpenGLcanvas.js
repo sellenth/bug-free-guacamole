@@ -2,7 +2,7 @@ import React from 'react'
 import vertexShader from './shaderProgram/vertexShader'
 import fragmentShader from './shaderProgram/fragmentShader'
 import { mat4 } from 'gl-matrix'
-import { loadTexture, initBuffers, initShaderProgram } from './utilities'
+import { loadTexture, initBuffers, initShaderProgram, setupVideo } from './utilities'
 
 function init() {
     const canvas = document.querySelector("#glCanvas");
@@ -21,11 +21,13 @@ function init() {
         program: shaderProgram,
         attribLocations: {
             vertexPosition: gl.getAttribLocation(shaderProgram, 'aVertexPosition'),
+            vertexNormal: gl.getAttribLocation(shaderProgram, 'aVertexNormal'),
             textureCoord: gl.getAttribLocation(shaderProgram, 'aTextureCoord'),
         },
         uniformLocations: {
             projectionMatrix: gl.getUniformLocation(shaderProgram, 'uProjectionMatrix'),
             modelViewMatrix: gl.getUniformLocation(shaderProgram, 'uModelViewMatrix'),
+            normalMatrix: gl.getUniformLocation(shaderProgram, 'uNormalMatrix'),
             uSampler: gl.getUniformLocation(shaderProgram, 'uSampler'),
         },
     }
@@ -35,9 +37,11 @@ function init() {
     const referenceVariables = {
         cubeRotation: 0,
         texture: loadTexture(gl, 'approve.png'),
+        videoLoadedFlag: false,
     };
 
-    console.log(referenceVariables)
+    setupVideo()
+
     let then = 0;
 
     // Draw the scene repeatedly
@@ -137,6 +141,28 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
         gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
     }
 
+    {
+        const numComponents = 3;
+        const type = gl.FLOAT;
+        const normalize = false;
+        const stride = 0;
+        const offset = 0;
+        gl.bindBuffer(gl.ARRAY_BUFFER, buffers.normal);
+        gl.vertexAttribPointer(
+            programInfo.attribLocations.vertexNormal,
+            numComponents,
+            type,
+            normalize,
+            stride,
+            offset);
+        gl.enableVertexAttribArray(
+            programInfo.attribLocations.vertexNormal);
+    }
+
+    const normalMatrix = mat4.create();
+    mat4.invert(normalMatrix, modelViewMatrix);
+    mat4.transpose(normalMatrix, normalMatrix);
+
     // Tell WebGL to use our program when drawing
 
     gl.useProgram(programInfo.program);
@@ -151,6 +177,10 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
         programInfo.uniformLocations.modelViewMatrix,
         false,
         modelViewMatrix);
+    gl.uniformMatrix4fv(
+        programInfo.uniformLocations.normalMatrix,
+        false,
+        normalMatrix);
 
     // Tell WebGL we want to affect texture unit 0
     gl.activeTexture(gl.TEXTURE0);
@@ -168,17 +198,6 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
         const vertexCount = 36;
         const type = gl.UNSIGNED_SHORT;
         const offset = 0;
-        gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
-
-        mat4.translate(modelViewMatrix,     // destination matrix
-            modelViewMatrix,     // matrix to translate
-            [-0.0, 2.0, 0.0]);  // amount to translate
-
-        gl.uniformMatrix4fv(
-            programInfo.uniformLocations.modelViewMatrix,
-            false,
-            modelViewMatrix);
-        
         gl.drawElements(gl.TRIANGLES, vertexCount, type, offset);
     }
 

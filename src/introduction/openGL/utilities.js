@@ -115,11 +115,60 @@ export function initBuffers(gl) {
     gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
         new Uint16Array(indices), gl.STATIC_DRAW);
 
+    //=======
+    const normalBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+  
+    const vertexNormals = [
+      // Front
+       0.0,  0.0,  1.0,
+       0.0,  0.0,  1.0,
+       0.0,  0.0,  1.0,
+       0.0,  0.0,  1.0,
+  
+      // Back
+       0.0,  0.0, -1.0,
+       0.0,  0.0, -1.0,
+       0.0,  0.0, -1.0,
+       0.0,  0.0, -1.0,
+  
+      // Top
+       0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
+       0.0,  1.0,  0.0,
+  
+      // Bottom
+       0.0, -1.0,  0.0,
+       0.0, -1.0,  0.0,
+       0.0, -1.0,  0.0,
+       0.0, -1.0,  0.0,
+  
+      // Right
+       1.0,  0.0,  0.0,
+       1.0,  0.0,  0.0,
+       1.0,  0.0,  0.0,
+       1.0,  0.0,  0.0,
+  
+      // Left
+      -1.0,  0.0,  0.0,
+      -1.0,  0.0,  0.0,
+      -1.0,  0.0,  0.0,
+      -1.0,  0.0,  0.0
+    ];
+  
+    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
+                  gl.STATIC_DRAW);
+
+    //==========
+
     return {
         position: positionBuffer,
+        normal: normalBuffer,
         textureCoord: textureCoordBuffer,
         indices: indexBuffer,
-    };
+      };
+    
 }
 
 //
@@ -225,4 +274,39 @@ export function loadTexture(gl, url) {
 
 export function isPowerOf2(value) {
     return (value & (value - 1)) == 0;
+}
+
+export function setupVideo(url, flags) {
+  const video = document.createElement('video');
+
+  var playing = false;
+  var timeupdate = false;
+
+  video.autoplay = true;
+  video.muted = true;
+  video.loop = true;
+
+  // Waiting for these 2 events ensures
+  // there is data in the video
+
+  video.addEventListener('playing', function() {
+     playing = true;
+     checkReady();
+  }, true);
+
+  video.addEventListener('timeupdate', function() {
+     timeupdate = true;
+     checkReady();
+  }, true);
+
+  video.src = url;
+  video.play();
+
+  function checkReady() {
+    if (playing && timeupdate) {
+      flags.videoLoadedFlag = true;
+    }
+  }
+
+  return video;
 }

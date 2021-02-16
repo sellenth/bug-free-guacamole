@@ -40,7 +40,7 @@ function init() {
 
     initializeVertexAttrib(gl, 4, gl.FLOAT, false, 0, 0, 
         buffers.color, programInfo.attribLocations.vertexColor)
-    initializeVertexAttrib(gl, 2, gl.FLOAT, false, 0, 0, 
+    initializeVertexAttrib(gl, 3, gl.FLOAT, false, 0, 0, 
         buffers.position, programInfo.attribLocations.vertexPosition)
 
     let then = 0;
@@ -62,7 +62,7 @@ function init() {
 }
 
 function clearBuffer(gl){
-    gl.clearColor(0.5, 0.5, 0.5, 0.0);  // Clear to black, fully opaque
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
@@ -113,15 +113,13 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
     const modelViewMatrix = mat4.create();
     mat4.translate(modelViewMatrix,     // destination matrix
         modelViewMatrix,     // matrix to translate
-        [0.0, 0.0, -2.4]);  // amount to translate        
+        [0.0, 0.0, -1.2]);  // amount to translate        
 
 
-        /*
     mat4.rotate(modelViewMatrix,  // destination matrix
         modelViewMatrix,  // matrix to rotate
         rv.cubeRotation,   // amount to rotate in radians
-        [0, 1, 0]);       // axis to rotate around
-        */
+        [0, 0, 1]);       // axis to rotate around
 
 
     // Tell WebGL to use our program when drawing
@@ -163,7 +161,7 @@ const OpenGLcanvas = () => {
     }, []);
 
     return (
-        <canvas id="glCanvas" width="640" height="480"></canvas>
+        <canvas id="glCanvas" width="1280" height="640"></canvas>
     )
 };
 

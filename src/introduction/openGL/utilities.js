@@ -1,6 +1,5 @@
 function createSubTriangles(minX, maxX, minY, maxY, rv, depth, invert = false) {
     depth--;
-    rv.numTriangles += 4;
     const diffX = maxX - minX;
     const diffY = maxY - minY;
 
@@ -82,10 +81,31 @@ function createSubTriangles(minX, maxX, minY, maxY, rv, depth, invert = false) {
 }
 
 function generateTriangles(rv) {
-    let result = createSubTriangles(-1, 1, 0, 1, rv, 3)
-    console.log(result, rv.numTriangles)
+    let depth = 4;
+    let result = createSubTriangles(-0.5, 0.5, -0.5, 0.5, rv, depth);
+    rv.numTriangles = 4 ** depth;
+    normalizeTriangles(result, 1);
     return result
+}
 
+function normalizeTriangles(triangles, length){
+    let center = [0.0, 0.0, 1];
+
+    for(let i = 0; i < triangles.length; i += 3){
+        let dx = center[0] - triangles[i];
+        let dy = center[1] - triangles[i+1];
+        let dz = center[2] - triangles[i+2];
+
+        let norm = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2);
+
+        dx = dx * length / norm;
+        dy = dy * length / norm;
+        dz = dz * length / norm;
+
+        triangles[i] = dx;
+        triangles[i+1] = dy;
+        triangles[i+2] = dz;
+    }
 }
 
 function generateColors(rv) {

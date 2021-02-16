@@ -1,174 +1,145 @@
-export function initBuffers(gl) {
+function createSubTriangles(minX, maxX, minY, maxY, rv, depth, invert = false) {
+    depth--;
+    rv.numTriangles += 4;
+    const diffX = maxX - minX;
+    const diffY = maxY - minY;
+
+    const leftMid = [minX + (diffX / 4), minY + (diffY / 2)]
+    const botMid = [minX + (diffX / 2), minY]
+    const topMid = [minX + (diffX / 2), maxY]
+    const rightMid = [maxX - (diffX / 4), minY + (diffY / 2)]
+
+    let triangles = [];
+
+
+    if (depth <= 0) {
+        if (invert) {
+            triangles.push(
+                //Top left
+                minX, maxY,
+                ...leftMid,
+                ...topMid,
+
+                //top right
+                ...topMid,
+                ...rightMid,
+                maxX, maxY
+            )
+        } else {
+            triangles.push(
+                //Bot left
+                minX, minY,
+                ...leftMid,
+                ...botMid,
+
+                //bot right
+                ...botMid,
+                ...rightMid,
+                maxX, minY
+            )
+
+        }
+        triangles.push(
+            //top mid
+            ...leftMid,
+            ...topMid,
+            ...rightMid,
+
+
+            //bot mid
+            ...leftMid,
+            ...botMid,
+            ...rightMid,
+        )
+
+    }
+
+    else {
+        if (invert) {
+            triangles.
+                push(...createSubTriangles(
+                    minX, minX + (diffX / 2), minY + (diffY / 2), maxY, rv, depth, true));
+            triangles.
+                push(...createSubTriangles(
+                    minX + (diffX / 2), maxX, minY + (diffY / 2), maxY, rv, depth, true));
+        } else {
+            triangles.
+                push(...createSubTriangles(
+                    minX, minX + (diffX / 2), minY, minY + (diffY / 2), rv, depth));
+            triangles.
+                push(...createSubTriangles(
+                    minX + (diffX / 2), maxX, minY, minY + (diffY / 2), rv, depth));
+        }
+        triangles.
+            push(...createSubTriangles(
+                minX + (diffX / 4), maxX - (diffX / 4), minY + (diffY / 2), maxY, rv, depth));
+        triangles.
+            push(...createSubTriangles(
+                minX + (diffX / 4), maxX - (diffX / 4), minY, maxY - (diffY / 2), rv, depth, true));
+    }
+
+    return triangles;
+}
+
+function generateTriangles(rv) {
+    let result = createSubTriangles(-1, 1, 0, 1, rv, 3)
+    console.log(result, rv.numTriangles)
+    return result
+
+}
+
+function generateColors(rv) {
+    const colors = [];
+
+    for (let i = 0; i < rv.numTriangles; i++) {
+        let color1 = Math.random();
+        let color2 = Math.random();
+        let color3 = Math.random();
+        colors.push(color1, color2, color3, 1.0);
+        colors.push(color1, color2, color3, 1.0);
+        colors.push(color1, color2, color3, 1.0);
+    }
+
+    console.log(colors)
+
+    return colors;
+}
+
+export function initBuffers(gl, rv) {
 
     // Now create an array of positions for the square.
 
-    const positions = [
-        // Front face
-        -1.0, -1.0, 1.0,
-        1.0, -1.0, 1.0,
-        1.0, 1.0, 1.0,
-        -1.0, 1.0, 1.0,
-
-        // Back face
-        -1.0, -1.0, -1.0,
-        -1.0, 1.0, -1.0,
-        1.0, 1.0, -1.0,
-        1.0, -1.0, -1.0,
-
-        // Top face
-        -1.0, 1.0, -1.0,
-        -1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
-        1.0, 1.0, -1.0,
-
-        // Bottom face
-        -1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        1.0, -1.0, 1.0,
-        -1.0, -1.0, 1.0,
-
-        // Right face
-        1.0, -1.0, -1.0,
-        1.0, 1.0, -1.0,
-        1.0, 1.0, 1.0,
-        1.0, -1.0, 1.0,
-
-        // Left face
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0, 1.0,
-        -1.0, 1.0, 1.0,
-        -1.0, 1.0, -1.0,
-    ];
+    const vertices = generateTriangles(rv);
 
     // Now pass the list of positions into WebGL to build the
     // shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
     gl.bufferData(gl.ARRAY_BUFFER,
-        new Float32Array(positions),
+        new Float32Array(vertices),
         gl.STATIC_DRAW);
 
-    //================
+    //==========
 
-    const textureCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+    const colors = generateColors(rv);
 
-    const textureCoordinates = [
-        // Front
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Back
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Top
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Bottom
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Right
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Left
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-    ];
+    const colorsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+    gl.bufferData(gl.ARRAY_BUFFER,
+        new Float32Array(colors),
         gl.STATIC_DRAW);
-
-
-    //================
-
-
-    // This array defines each face as two triangles, using the
-    // indices into the vertex array to specify each triangle's
-    // position.
-
-    const indices = [
-        0, 1, 2, 0, 2, 3,    // front
-        4, 5, 6, 4, 6, 7,    // back
-        8, 9, 10, 8, 10, 11,   // top
-        12, 13, 14, 12, 14, 15,   // bottom
-        16, 17, 18, 16, 18, 19,   // right
-        20, 21, 22, 20, 22, 23,   // left
-    ];
-
-    // Now send the element array to GL
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(indices), gl.STATIC_DRAW);
-
-    //=======
-    const normalBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
-  
-    const vertexNormals = [
-      // Front
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-       0.0,  0.0,  1.0,
-  
-      // Back
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-       0.0,  0.0, -1.0,
-  
-      // Top
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-       0.0,  1.0,  0.0,
-  
-      // Bottom
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-       0.0, -1.0,  0.0,
-  
-      // Right
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-       1.0,  0.0,  0.0,
-  
-      // Left
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0,
-      -1.0,  0.0,  0.0
-    ];
-  
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertexNormals),
-                  gl.STATIC_DRAW);
 
     //==========
 
     return {
-        position: positionBuffer,
-        normal: normalBuffer,
-        textureCoord: textureCoordBuffer,
-        indices: indexBuffer,
-      };
-    
+        position: vertexBuffer,
+        color: colorsBuffer
+    };
+
 }
 
 //
@@ -262,44 +233,44 @@ export function updateTexture(gl, texture, video) {
     const srcType = gl.UNSIGNED_BYTE;
     gl.bindTexture(gl.TEXTURE_2D, texture);
     gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-                  srcFormat, srcType, video);
-  }
+        srcFormat, srcType, video);
+}
 
 export function isPowerOf2(value) {
-    return (value & (value - 1)) == 0;
+    return (value & (value - 1)) === 0;
 }
 
 export function setupVideo(url, flags) {
-  const video = document.createElement('video');
+    const video = document.createElement('video');
 
-  var playing = false;
-  var timeupdate = false;
+    var playing = false;
+    var timeupdate = false;
 
-  video.autoplay = true;
-  video.muted = true;
-  video.loop = true;
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
 
-  // Waiting for these 2 events ensures
-  // there is data in the video
+    // Waiting for these 2 events ensures
+    // there is data in the video
 
-  video.addEventListener('playing', function() {
-     playing = true;
-     checkReady();
-  }, true);
+    video.addEventListener('playing', function () {
+        playing = true;
+        checkReady();
+    }, true);
 
-  video.addEventListener('timeupdate', function() {
-     timeupdate = true;
-     checkReady();
-  }, true);
+    video.addEventListener('timeupdate', function () {
+        timeupdate = true;
+        checkReady();
+    }, true);
 
-  video.src = url;
-  video.play();
+    video.src = url;
+    video.play();
 
-  function checkReady() {
-    if (playing && timeupdate) {
-      flags.videoLoadedFlag = true;
+    function checkReady() {
+        if (playing && timeupdate) {
+            flags.videoLoadedFlag = true;
+        }
     }
-  }
 
-  return video;
+    return video;
 }

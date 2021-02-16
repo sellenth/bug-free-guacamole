@@ -2,7 +2,7 @@ import React from 'react'
 import vertexShader from './shaderProgram/vertexShader'
 import fragmentShader from './shaderProgram/fragmentShader'
 import { mat4 } from 'gl-matrix'
-import { initTexture, updateTexture, initBuffers, initShaderProgram, setupVideo } from './utilities'
+import { initBuffers, initShaderProgram } from './utilities'
 
 
 function init() {
@@ -62,7 +62,7 @@ function init() {
 }
 
 function clearBuffer(gl){
-    gl.clearColor(0.5, 0.5, 0.5, 1.0);  // Clear to black, fully opaque
+    gl.clearColor(0.5, 0.5, 0.5, 0.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
@@ -113,16 +113,15 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
     const modelViewMatrix = mat4.create();
     mat4.translate(modelViewMatrix,     // destination matrix
         modelViewMatrix,     // matrix to translate
-        [0.0, -0.5, -2.0]);  // amount to translate        
+        [0.0, 0.0, -2.4]);  // amount to translate        
 
 
         /*
     mat4.rotate(modelViewMatrix,  // destination matrix
         modelViewMatrix,  // matrix to rotate
         rv.cubeRotation,   // amount to rotate in radians
-        [1, .5, 1]);       // axis to rotate around
+        [0, 1, 0]);       // axis to rotate around
         */
-
 
 
     // Tell WebGL to use our program when drawing

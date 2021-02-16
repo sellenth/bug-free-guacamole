@@ -16,40 +16,40 @@ function createSubTriangles(minX, maxX, minY, maxY, rv, depth, invert = false) {
         if (invert) {
             triangles.push(
                 //Top left
-                minX, maxY,
-                ...leftMid,
-                ...topMid,
+                minX, maxY, 0.0,
+                ...leftMid, 0.0,
+                ...topMid, 0.0,
 
                 //top right
-                ...topMid,
-                ...rightMid,
-                maxX, maxY
+                ...topMid, 0.0,
+                ...rightMid, 0.0,
+                maxX, maxY, 0.0,
             )
         } else {
             triangles.push(
                 //Bot left
-                minX, minY,
-                ...leftMid,
-                ...botMid,
+                minX, minY, 0.0,
+                ...leftMid, 0.0,
+                ...botMid, 0.0,
 
                 //bot right
-                ...botMid,
-                ...rightMid,
-                maxX, minY
+                ...botMid, 0.0,
+                ...rightMid, 0.0,
+                maxX, minY, 0.0,
             )
 
         }
         triangles.push(
             //top mid
-            ...leftMid,
-            ...topMid,
-            ...rightMid,
+            ...leftMid, 0.0,
+            ...topMid, 0.0,
+            ...rightMid, 0.0,
 
 
             //bot mid
-            ...leftMid,
-            ...botMid,
-            ...rightMid,
+            ...leftMid, 0.0,
+            ...botMid, 0.0,
+            ...rightMid, 0.0,
         )
 
     }

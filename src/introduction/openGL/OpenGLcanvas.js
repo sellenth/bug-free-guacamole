@@ -2,7 +2,7 @@ import React from 'react'
 import vertexShader from './shaderProgram/vertexShader'
 import fragmentShader from './shaderProgram/fragmentShader'
 import { mat4 } from 'gl-matrix'
-import { loadTexture, initBuffers, initShaderProgram, setupVideo } from './utilities'
+import { initTexture, updateTexture, initBuffers, initShaderProgram, setupVideo } from './utilities'
 
 function init() {
     const canvas = document.querySelector("#glCanvas");
@@ -34,13 +34,15 @@ function init() {
 
     const buffers = initBuffers(gl)
 
+    const texture = initTexture(gl);
+
     const referenceVariables = {
         cubeRotation: 0,
-        texture: loadTexture(gl, 'approve.png'),
+        texture: texture,
         videoLoadedFlag: false,
     };
 
-    setupVideo()
+    const video = setupVideo('vid.mp4', referenceVariables);
 
     let then = 0;
 
@@ -49,6 +51,10 @@ function init() {
         now *= 0.001;  // convert to seconds
         const deltaTime = now - then;
         then = now;
+
+        if (referenceVariables.videoLoadedFlag){
+            updateTexture(gl, texture, video);
+        }
 
         drawScene(gl, programInfo, buffers, deltaTime, referenceVariables);
 
@@ -61,7 +67,7 @@ function init() {
 }
 
 function drawScene(gl, programInfo, buffers, deltaTime, rv) {
-    gl.clearColor(0.0, 0.0, 0.0, 1.0);  // Clear to black, fully opaque
+    gl.clearColor(1.0, 1.0, 1.0, 1.0);  // Clear to black, fully opaque
     gl.clearDepth(1.0);                 // Clear everything
     gl.enable(gl.DEPTH_TEST);           // Enable depth testing
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things

@@ -179,7 +179,7 @@ const OpenGLcanvas = () => {
     }, []);
 
     return (
-        <canvas id="glCanvas" width="1280" height="640"  style={{
+        <canvas id="glCanvas" width="1920" height="960"  style={{
             width: isPortrait ? "100vw" : "70vw",
         }}></canvas>
     )

@@ -3,7 +3,11 @@ import { extendTheme } from "@chakra-ui/react"
 const Heading = {
     variants: {
         "blended": {
-            mixBlendMode: "difference"
+            mixBlendMode: "difference",
+            color: "coral",
+            position: "absolute",
+            top: "50%",
+            left: "0px"
         },
     },
 }

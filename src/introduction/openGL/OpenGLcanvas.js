@@ -3,11 +3,12 @@ import vertexShader from './shaderProgram/vertexShader'
 import fragmentShader from './shaderProgram/fragmentShader'
 import { mat4 } from 'gl-matrix'
 import { initBuffers, initShaderProgram } from './utilities'
+import { useMediaQuery } from 'react-responsive'
 
 
 function init() {
     const canvas = document.querySelector("#glCanvas");
-    const gl = canvas.getContext("webgl");
+    const gl = canvas.getContext("webgl", {preserveDrawingBuffer: true});
 
     //only continue if WebGL is available and working
     if (gl === null) {
@@ -33,6 +34,12 @@ function init() {
     const referenceVariables = {
         cubeRotation: 0,
         numTriangles: 0,
+        yOffset: 1.0,
+        now: 0,
+        cubeAccel: 1.5,
+        cubeVelocity: 0.0,
+        direction: 1.0,
+        interval: 5,
     };
 
 
@@ -48,6 +55,7 @@ function init() {
     // Draw the scene repeatedly
     function render(now) {
         now *= 0.001;  // convert to seconds
+        referenceVariables.now = now;
         const deltaTime = now - then;
         then = now;
 
@@ -68,7 +76,7 @@ function clearBuffer(gl){
     gl.depthFunc(gl.LEQUAL);            // Near things obscure far things
 
     // Clear the canvas before we start drawing on it.
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    //gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 }
 
 function createProjectionMatrix(gl, rv) {
@@ -113,13 +121,13 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
     const modelViewMatrix = mat4.create();
     mat4.translate(modelViewMatrix,     // destination matrix
         modelViewMatrix,     // matrix to translate
-        [0.0, 0.0, -1.2]);  // amount to translate        
+        [0.0, 0.0, -2.3]);  // amount to translate        
 
 
     mat4.rotate(modelViewMatrix,  // destination matrix
         modelViewMatrix,  // matrix to rotate
         rv.cubeRotation,   // amount to rotate in radians
-        [0, 0, 1]);       // axis to rotate around
+        [0, 0, .2]);       // axis to rotate around
 
 
     // Tell WebGL to use our program when drawing
@@ -149,19 +157,31 @@ function drawScene(gl, programInfo, buffers, deltaTime, rv) {
         gl.drawArrays(gl.TRIANGLES, offset, vertexCount);
     }
 
-    rv.cubeRotation += deltaTime;
+    if (rv.now < 1.0){
+        gl.clearColor(1.0, 1.0, 1.0, 1.0)
+        gl.clear(gl.COLOR_BUFFER_BIT)
+    }
+
+    rv.cubeVelocity = 0.005 * rv.cubeAccel;
+    rv.cubeRotation += rv.cubeVelocity;
+
 }
 
 
 
 
 const OpenGLcanvas = () => {
+
+    const isPortrait = useMediaQuery({ query: '(orientation: portrait)' })
+
     React.useEffect(() => {
         init();
     }, []);
 
     return (
-        <canvas id="glCanvas" width="1280" height="640"></canvas>
+        <canvas id="glCanvas" width="1280" height="640"  style={{
+            width: isPortrait ? "100vw" : "70vw",
+        }}></canvas>
     )
 };
 

@@ -110,14 +110,26 @@ function normalizeTriangles(triangles, length){
 
 function generateColors(rv) {
     const colors = [];
+    let colorMode = true;
+
+    if (Math.random() > 0.8){
+        colorMode = false;
+    }
 
     for (let i = 0; i < rv.numTriangles; i++) {
         let color1 = Math.random();
         let color2 = Math.random();
         let color3 = Math.random();
-        colors.push(color1, color2, color3, 1.0);
-        colors.push(color1, color2, color3, 1.0);
-        colors.push(color1, color2, color3, 1.0);
+        if (colorMode){
+            colors.push(color1, color2, color3, 1.0);
+            colors.push(color1, color2, color3, 1.0);
+            colors.push(color1, color2, color3, 1.0);
+        } else {
+            colors.push(color1, color1, color1, 1.0);
+            colors.push(color1, color1, color1, 1.0);
+            colors.push(color1, color1, color1, 1.0);
+
+        }
     }
 
     console.log(colors)

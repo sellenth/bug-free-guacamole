@@ -10,9 +10,9 @@ const Introduction = () => {
         "I tinker with computers."
     ]
     return (
-        <div>
+        <div style={{position: "relative"}}>
             {/*<LoadingCircle script={script} />*/}
-            <Heading textAlign="center" size="4xl">Halston Sellentin</Heading>
+            <Heading textAlign="center" size="4xl" variant="blended">HALSTON SELLENTIN</Heading>
             <OpenGLcanvas />
         </div>
     )

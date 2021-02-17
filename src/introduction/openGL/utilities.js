@@ -1,125 +1,177 @@
-export function initBuffers(gl) {
+function createSubTriangles(minX, maxX, minY, maxY, rv, depth, invert = false) {
+    depth--;
+    const diffX = maxX - minX;
+    const diffY = maxY - minY;
+
+    const leftMid = [minX + (diffX / 4), minY + (diffY / 2)]
+    const botMid = [minX + (diffX / 2), minY]
+    const topMid = [minX + (diffX / 2), maxY]
+    const rightMid = [maxX - (diffX / 4), minY + (diffY / 2)]
+
+    let triangles = [];
+
+
+    if (depth <= 0) {
+        if (invert) {
+            triangles.push(
+                //Top left
+                minX, maxY, 0.0,
+                ...leftMid, 0.0,
+                ...topMid, 0.0,
+
+                //top right
+                ...topMid, 0.0,
+                ...rightMid, 0.0,
+                maxX, maxY, 0.0,
+            )
+        } else {
+            triangles.push(
+                //Bot left
+                minX, minY, 0.0,
+                ...leftMid, 0.0,
+                ...botMid, 0.0,
+
+                //bot right
+                ...botMid, 0.0,
+                ...rightMid, 0.0,
+                maxX, minY, 0.0,
+            )
+
+        }
+        triangles.push(
+            //top mid
+            ...leftMid, 0.0,
+            ...topMid, 0.0,
+            ...rightMid, 0.0,
+
+
+            //bot mid
+            ...leftMid, 0.0,
+            ...botMid, 0.0,
+            ...rightMid, 0.0,
+        )
+
+    }
+
+    else {
+        if (invert) {
+            triangles.
+                push(...createSubTriangles(
+                    minX, minX + (diffX / 2), minY + (diffY / 2), maxY, rv, depth, true));
+            triangles.
+                push(...createSubTriangles(
+                    minX + (diffX / 2), maxX, minY + (diffY / 2), maxY, rv, depth, true));
+        } else {
+            triangles.
+                push(...createSubTriangles(
+                    minX, minX + (diffX / 2), minY, minY + (diffY / 2), rv, depth));
+            triangles.
+                push(...createSubTriangles(
+                    minX + (diffX / 2), maxX, minY, minY + (diffY / 2), rv, depth));
+        }
+        triangles.
+            push(...createSubTriangles(
+                minX + (diffX / 4), maxX - (diffX / 4), minY + (diffY / 2), maxY, rv, depth));
+        triangles.
+            push(...createSubTriangles(
+                minX + (diffX / 4), maxX - (diffX / 4), minY, maxY - (diffY / 2), rv, depth, true));
+    }
+
+    return triangles;
+}
+
+function generateTriangles(rv) {
+    let depth = 4;
+    let result = createSubTriangles(-0.5, 0.5, -0.5, 0.5, rv, depth);
+    rv.numTriangles = 4 ** depth;
+    normalizeTriangles(result, 1);
+    return result
+}
+
+function normalizeTriangles(triangles, length){
+    let center = [0.0, 0.0, 1];
+
+    for(let i = 0; i < triangles.length; i += 3){
+        let dx = center[0] - triangles[i];
+        let dy = center[1] - triangles[i+1];
+        let dz = center[2] - triangles[i+2];
+
+        let norm = Math.sqrt(dx ** 2 + dy ** 2 + dz ** 2);
+
+        dx = dx * length / norm;
+        dy = dy * length / norm;
+        dz = dz * length / norm;
+
+        triangles[i] = dx;
+        triangles[i+1] = dy;
+        triangles[i+2] = dz;
+    }
+}
+
+function generateColors(rv) {
+    const colors = [];
+    let colorMode = true;
+
+    if (Math.random() > 0.8){
+        colorMode = false;
+    }
+
+    for (let i = 0; i < rv.numTriangles; i++) {
+        let color1 = Math.random();
+        let color2 = Math.random();
+        let color3 = Math.random();
+        if (colorMode){
+            colors.push(color1, color2, color3, 1.0);
+            colors.push(color1, color2, color3, 1.0);
+            colors.push(color1, color2, color3, 1.0);
+        } else {
+            colors.push(color1, color1, color1, 1.0);
+            colors.push(color1, color1, color1, 1.0);
+            colors.push(color1, color1, color1, 1.0);
+
+        }
+    }
+
+    console.log(colors)
+
+    return colors;
+}
+
+export function initBuffers(gl, rv) {
 
     // Now create an array of positions for the square.
 
-    const positions = [
-        // Front face
-        -1.0, -1.0, 1.0,
-        1.0, -1.0, 1.0,
-        1.0, 1.0, 1.0,
-        -1.0, 1.0, 1.0,
-
-        // Back face
-        -1.0, -1.0, -1.0,
-        -1.0, 1.0, -1.0,
-        1.0, 1.0, -1.0,
-        1.0, -1.0, -1.0,
-
-        // Top face
-        -1.0, 1.0, -1.0,
-        -1.0, 1.0, 1.0,
-        1.0, 1.0, 1.0,
-        1.0, 1.0, -1.0,
-
-        // Bottom face
-        -1.0, -1.0, -1.0,
-        1.0, -1.0, -1.0,
-        1.0, -1.0, 1.0,
-        -1.0, -1.0, 1.0,
-
-        // Right face
-        1.0, -1.0, -1.0,
-        1.0, 1.0, -1.0,
-        1.0, 1.0, 1.0,
-        1.0, -1.0, 1.0,
-
-        // Left face
-        -1.0, -1.0, -1.0,
-        -1.0, -1.0, 1.0,
-        -1.0, 1.0, 1.0,
-        -1.0, 1.0, -1.0,
-    ];
+    const vertices = generateTriangles(rv);
 
     // Now pass the list of positions into WebGL to build the
     // shape. We do this by creating a Float32Array from the
     // JavaScript array, then use it to fill the current buffer.
 
-    const positionBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+    const vertexBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, vertexBuffer);
 
     gl.bufferData(gl.ARRAY_BUFFER,
-        new Float32Array(positions),
+        new Float32Array(vertices),
         gl.STATIC_DRAW);
 
-    //================
+    //==========
 
-    const textureCoordBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
+    const colors = generateColors(rv);
 
-    const textureCoordinates = [
-        // Front
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Back
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Top
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Bottom
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Right
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-        // Left
-        0.0, 0.0,
-        1.0, 0.0,
-        1.0, 1.0,
-        0.0, 1.0,
-    ];
+    const colorsBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, colorsBuffer);
 
-    gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(textureCoordinates),
+    gl.bufferData(gl.ARRAY_BUFFER,
+        new Float32Array(colors),
         gl.STATIC_DRAW);
 
-
-    //================
-
-
-    // This array defines each face as two triangles, using the
-    // indices into the vertex array to specify each triangle's
-    // position.
-
-    const indices = [
-        0, 1, 2, 0, 2, 3,    // front
-        4, 5, 6, 4, 6, 7,    // back
-        8, 9, 10, 8, 10, 11,   // top
-        12, 13, 14, 12, 14, 15,   // bottom
-        16, 17, 18, 16, 18, 19,   // right
-        20, 21, 22, 20, 22, 23,   // left
-    ];
-
-    // Now send the element array to GL
-    const indexBuffer = gl.createBuffer();
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER,
-        new Uint16Array(indices), gl.STATIC_DRAW);
+    //==========
 
     return {
-        position: positionBuffer,
-        textureCoord: textureCoordBuffer,
-        indices: indexBuffer,
+        position: vertexBuffer,
+        color: colorsBuffer
     };
+
 }
 
 //
@@ -176,7 +228,7 @@ export function loadShader(gl, type, source) {
 // Initialize a texture and load an image.
 // When the image finished loading copy it into the texture.
 //
-export function loadTexture(gl, url) {
+export function initTexture(gl) {
     const texture = gl.createTexture();
     gl.bindTexture(gl.TEXTURE_2D, texture);
 
@@ -197,32 +249,60 @@ export function loadTexture(gl, url) {
         width, height, border, srcFormat, srcType,
         pixel);
 
-    const image = new Image();
-    image.onload = function () {
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
-            srcFormat, srcType, image);
-
-        // WebGL1 has different requirements for power of 2 images
-        // vs non power of 2 images so check if the image is a
-        // power of 2 in both dimensions.
-        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
-            // Yes, it's a power of 2. Generate mips.
-            gl.generateMipmap(gl.TEXTURE_2D);
-        } else {
-            // No, it's not a power of 2. Turn off mips and set
-            // wrapping to clamp to edge
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        }
-
-    };
-    image.src = url;
+    // Turn off mips and set  wrapping to clamp to edge so it
+    // will work regardless of the dimensions of the video.
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
 
     return texture;
 }
 
+export function updateTexture(gl, texture, video) {
+    const level = 0;
+    const internalFormat = gl.RGBA;
+    const srcFormat = gl.RGBA;
+    const srcType = gl.UNSIGNED_BYTE;
+    gl.bindTexture(gl.TEXTURE_2D, texture);
+    gl.texImage2D(gl.TEXTURE_2D, level, internalFormat,
+        srcFormat, srcType, video);
+}
+
 export function isPowerOf2(value) {
-    return (value & (value - 1)) == 0;
+    return (value & (value - 1)) === 0;
+}
+
+export function setupVideo(url, flags) {
+    const video = document.createElement('video');
+
+    var playing = false;
+    var timeupdate = false;
+
+    video.autoplay = true;
+    video.muted = true;
+    video.loop = true;
+
+    // Waiting for these 2 events ensures
+    // there is data in the video
+
+    video.addEventListener('playing', function () {
+        playing = true;
+        checkReady();
+    }, true);
+
+    video.addEventListener('timeupdate', function () {
+        timeupdate = true;
+        checkReady();
+    }, true);
+
+    video.src = url;
+    video.play();
+
+    function checkReady() {
+        if (playing && timeupdate) {
+            flags.videoLoadedFlag = true;
+        }
+    }
+
+    return video;
 }

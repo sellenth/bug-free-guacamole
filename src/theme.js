@@ -5,9 +5,9 @@ const Heading = {
         "blended": {
             mixBlendMode: "difference",
             color: "coral",
-            position: "absolute",
-            top: "50%",
-            left: "0px"
+            position: "sticky",
+            top: "50px",
+            width: "100%",
         },
     },
 }
